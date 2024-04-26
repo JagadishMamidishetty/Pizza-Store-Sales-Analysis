@@ -1,0 +1,16 @@
+-- determine the top 3 most oredered piizza types based on revenue for each price_category
+
+SELECT name, revenue 
+FROM (
+    SELECT category, name, revenue,
+           DENSE_RANK() OVER(PARTITION BY category ORDER BY revenue DESC) AS rn
+    FROM (
+        SELECT pizza_types.category, pizza_types.name,
+               SUM(orders_details.quantity * pizzas.price) AS revenue
+        FROM pizza_types 
+        JOIN pizzas ON pizza_types.pizza_type_id = pizzas.pizza_type_id
+        JOIN orders_details ON orders_details.pizza_id = pizzas.pizza_id
+        GROUP BY pizza_types.category, pizza_types.name
+    ) AS a
+) AS b
+WHERE rn <= 3 limit 3;
